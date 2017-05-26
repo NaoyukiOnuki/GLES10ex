@@ -29,8 +29,10 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         rotationBarZ.setOnSeekBarChangeListener(this);
 
         renderer = new SimpleRenderer();
-        renderer.addObj(new Cube(0.5f, 0, 0.2f, -3));
-        renderer.addObj(new Pyramid(0.5f, 0, 0, 0));
+        //renderer.addObj(new Cube(0.5f, 0, 0.2f, -3));
+        //renderer.addObj(new Pyramid(0.5f, 0, 0, 0));
+        //renderer.addObj(new nPyramid(5, 0.5f, 0, 0, 0));
+        renderer.addObj(new nPyramid(500, 0.5f, 0.5f, 0.5f, 0));
         glView.setRenderer(renderer);
     }
 
