@@ -5,6 +5,7 @@ import android.util.Log;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
+import java.nio.ShortBuffer;
 import java.util.ArrayList;
 
 import javax.microedition.khronos.opengles.GL10;
@@ -16,6 +17,8 @@ import javax.microedition.khronos.opengles.GL10;
 public class nPyramid implements SimpleRenderer.Obj {
 
     private FloatBuffer vbuf;
+    private ShortBuffer bottombuf;
+    private ShortBuffer sidebuf;
     private float x, y, z;
     private int n;
     private ArrayList<Vector> normalVectorList = new ArrayList<>();
@@ -69,15 +72,14 @@ public class nPyramid implements SimpleRenderer.Obj {
         for (MyPoint p : bottoms) {
             p.addInto(verticeList);
         }
+        top.addInto(verticeList);
+
+        // calculate normal vector
         for (int i = 0, j = 1; i < n; i++, j++) {
             if (j == n) j = 0;
             MyPoint bottom1 = bottoms.get(i);
             MyPoint bottom2 = bottoms.get(j);
-            top.addInto(verticeList);
-            bottom1.addInto(verticeList);
-            bottom2.addInto(verticeList);
 
-            // calculate normal vector
             Vector v1 = new Vector(top.x - bottom1.x, top.y - bottom1.y, top.z - bottom1.z);
             Vector v2 = new Vector(top.x - bottom2.x, top.y - bottom2.y, top.z - bottom2.z);
             Vector normal = v1.crossProduct(v2).unit();
@@ -89,8 +91,16 @@ public class nPyramid implements SimpleRenderer.Obj {
         for (float v: verticeList) {
             vbuf.put(v);
         }
-        //vbuf.put(vertices);
         vbuf.position(0);
+        bottombuf = ByteBuffer.allocateDirect((n-1) * Short.SIZE)
+                .order(ByteOrder.nativeOrder()).asShortBuffer();
+        for (short i = 0; i < n; i++) {
+            bottombuf.put(i);
+        }
+        bottombuf.position(0);
+        sidebuf = ByteBuffer.allocateDirect((n-1) * Short.SIZE)
+                .order(ByteOrder.nativeOrder()).asShortBuffer();
+        sidebuf.position(0);
         this.x = x;
         this.y = y;
         this.z = z;
@@ -103,15 +113,19 @@ public class nPyramid implements SimpleRenderer.Obj {
 
         // bottom
         gl.glNormal3f(0, -1, 0);
-        gl.glDrawArrays(GL10.GL_TRIANGLE_FAN, 0, n);
+        gl.glDrawElements( GL10.GL_TRIANGLE_FAN , bottombuf.remaining() , GL10.GL_UNSIGNED_SHORT, bottombuf);
 
         // side
-        for (int i = 0; i < n; i++) {
+        for (short i = 0, j = 1; i < n; i++, j++) {
             Vector normal = normalVectorList.get(i);
             int d = 1;
             if (normal.y < 0) d *= -1;
             gl.glNormal3f(normal.x * d, normal.y * d, normal.z * d);
-            gl.glDrawArrays(GL10.GL_TRIANGLES, n + i*3, 3);
+            sidebuf.put(0, i);
+            if (j == n) j = 0; sidebuf.put(1, j);
+            sidebuf.put(2, (short)n);
+            sidebuf.position(0);
+            gl.glDrawElements( GL10.GL_TRIANGLES , sidebuf.remaining() , GL10.GL_UNSIGNED_SHORT, sidebuf);
         }
 
     }

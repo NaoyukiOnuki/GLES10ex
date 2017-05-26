@@ -10,9 +10,12 @@ import javax.microedition.khronos.opengles.GL10;
 public class Cube implements SimpleRenderer.Obj {
 
     private FloatBuffer vbuf;
-    private FloatBuffer nbuf;
-    private ShortBuffer ibuf1;
-    private ShortBuffer ibuf2;
+    private ShortBuffer lbuf;
+    private ShortBuffer rbuf;
+    private ShortBuffer bbuf;
+    private ShortBuffer tbuf;
+    private ShortBuffer frontbuf;
+    private ShortBuffer backbuf;
     private float x, y, z;
 
     public Cube(float s, float x, float y, float z) {
@@ -30,34 +33,49 @@ public class Cube implements SimpleRenderer.Obj {
                 .order(ByteOrder.nativeOrder()).asFloatBuffer();
         vbuf.put(vertices);
         vbuf.position(0);
-        float[] normals = {
-                -s, -s, -s,
-                -s, -s, s,
-                -s, s, -s,
-                -s, s, s,
-                s, -s, -s,
-                s, -s, s,
-                s, s, -s,
-                s, s, s
+        short[] lindices = {
+                0,1,3,2
         };
-        nbuf = ByteBuffer.allocateDirect(normals.length * 4)
-                .order(ByteOrder.nativeOrder()).asFloatBuffer();
-        nbuf.put(normals);
-        nbuf.position(0);
-        short[] indices1 = {
-                0,1,3,2,6,4,5,1
-        };
-        ibuf1 = ByteBuffer.allocateDirect(indices1.length * Short.SIZE)
+        lbuf = ByteBuffer.allocateDirect(lindices.length * Short.SIZE)
                 .order(ByteOrder.nativeOrder()).asShortBuffer();
-        ibuf1.put(indices1);
-        ibuf1.position(0);
-        short[] induces2 = {
-                7,1,3,2,6,4,5,1
+        lbuf.put(lindices);
+        lbuf.position(0);
+        short[] rindices = {
+                4,5,7,6
         };
-        ibuf2 = ByteBuffer.allocateDirect(induces2.length * Short.SIZE)
+        rbuf = ByteBuffer.allocateDirect(rindices.length * Short.SIZE)
                 .order(ByteOrder.nativeOrder()).asShortBuffer();
-        ibuf2.put(induces2);
-        ibuf2.position(0);
+        rbuf.put(rindices);
+        rbuf.position(0);
+        short[] bindices = {
+                0,1,5,4
+        };
+        bbuf = ByteBuffer.allocateDirect(bindices.length * Short.SIZE)
+                .order(ByteOrder.nativeOrder()).asShortBuffer();
+        bbuf.put(bindices);
+        bbuf.position(0);
+        short[] tindices = {
+                2,3,7,6
+        };
+        tbuf = ByteBuffer.allocateDirect(tindices.length * Short.SIZE)
+                .order(ByteOrder.nativeOrder()).asShortBuffer();
+        tbuf.put(tindices);
+        tbuf.position(0);
+        short[] frontindices = {
+                1,3,7,5
+        };
+        frontbuf = ByteBuffer.allocateDirect(frontindices.length * Short.SIZE)
+                .order(ByteOrder.nativeOrder()).asShortBuffer();
+        frontbuf.put(frontindices);
+        frontbuf.position(0);
+        short[] backindices = {
+                0,2,6,4
+        };
+        backbuf = ByteBuffer.allocateDirect(backindices.length * Short.SIZE)
+                .order(ByteOrder.nativeOrder()).asShortBuffer();
+        backbuf.put(backindices);
+        backbuf.position(0);
+
         this.x = x;
         this.y = y;
         this.z = z;
@@ -65,12 +83,20 @@ public class Cube implements SimpleRenderer.Obj {
 
     public void draw(GL10 gl) {
         gl.glEnableClientState(GL10.GL_VERTEX_ARRAY);
-        gl.glEnableClientState(GL10.GL_NORMAL_ARRAY );
         gl.glVertexPointer(3, GL10.GL_FLOAT, 0, vbuf);
-        gl.glNormalPointer( GL10.GL_FLOAT , 0 , nbuf );
 
-        gl.glDrawElements( GL10.GL_TRIANGLE_FAN , ibuf1.remaining() , GL10.GL_UNSIGNED_SHORT, ibuf1);
-        gl.glDrawElements( GL10.GL_TRIANGLE_FAN , ibuf2.remaining() , GL10.GL_UNSIGNED_SHORT, ibuf2);
+        gl.glNormal3f(-1,0,0);
+        gl.glDrawElements( GL10.GL_TRIANGLE_FAN , lbuf.remaining() , GL10.GL_UNSIGNED_SHORT, lbuf);
+        gl.glNormal3f(0,1,0);
+        gl.glDrawElements( GL10.GL_TRIANGLE_FAN , tbuf.remaining() , GL10.GL_UNSIGNED_SHORT, tbuf);
+        gl.glNormal3f(0,0,1);
+        gl.glDrawElements( GL10.GL_TRIANGLE_FAN , frontbuf.remaining() , GL10.GL_UNSIGNED_SHORT, frontbuf);
+        gl.glNormal3f(0,-1,0);
+        gl.glDrawElements( GL10.GL_TRIANGLE_FAN , bbuf.remaining() , GL10.GL_UNSIGNED_SHORT, bbuf);
+        gl.glNormal3f(1,0,0);
+        gl.glDrawElements( GL10.GL_TRIANGLE_FAN , rbuf.remaining() , GL10.GL_UNSIGNED_SHORT, rbuf);
+        gl.glNormal3f(0,0,-1);
+        gl.glDrawElements( GL10.GL_TRIANGLE_FAN , backbuf.remaining() , GL10.GL_UNSIGNED_SHORT, backbuf);
     }
     @Override
     public float getX() {
